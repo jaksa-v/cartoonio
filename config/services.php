@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'replicate' => [
+        'api_token' => env('REPLICATE_API_TOKEN'),
+        'default_model' => env('REPLICATE_DEFAULT_MODEL', 'google/nano-banana'),
+    ],
+
 ];

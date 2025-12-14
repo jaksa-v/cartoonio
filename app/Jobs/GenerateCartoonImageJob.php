@@ -32,21 +32,35 @@ class GenerateCartoonImageJob implements ShouldQueue
 
         $generation->update(['status' => GenerationStatus::Processing]);
 
+        $styleConfig = config("cartoon_styles.{$generation->style_key}");
+
+        if (! $styleConfig) {
+            $this->markAsFailed($generation, "Style configuration not found for: {$generation->style_key}");
+
+            return;
+        }
+
+        if (! $generation->original_path) {
+            $this->markAsFailed($generation, 'Original image path not found');
+
+            return;
+        }
+
+        $model = config('services.replicate.default_model');
+
+        if (! $model) {
+            $this->markAsFailed($generation, 'Replicate model not configured');
+
+            return;
+        }
+
         try {
-            $styleConfig = config("cartoon_styles.{$generation->style_key}");
-
-            if (! $styleConfig) {
-                throw new \Exception("Style configuration not found for: {$generation->style_key}");
-            }
-
-            if (! $generation->original_path) {
-                throw new \Exception('Original image path not found');
-            }
-
             $imageContents = Storage::disk($generation->original_disk)->get($generation->original_path);
 
             if ($imageContents === false) {
-                throw new \Exception('Failed to read original image file');
+                $this->markAsFailed($generation, 'Failed to read original image file');
+
+                return;
             }
 
             $mimeType = Storage::disk($generation->original_disk)->mimeType($generation->original_path) ?? 'image/png';
@@ -58,12 +72,6 @@ class GenerateCartoonImageJob implements ShouldQueue
                 'output_format' => 'jpg',
             ];
 
-            $model = config('services.replicate.default_model');
-
-            if (! $model) {
-                throw new \Exception('Replicate model not configured');
-            }
-
             $resultUrl = $replicateClient->runPrediction(
                 $model,
                 $dataUri,
@@ -71,13 +79,17 @@ class GenerateCartoonImageJob implements ShouldQueue
             );
 
             if (! $resultUrl) {
-                throw new \Exception('Failed to generate image from Replicate');
+                $this->markAsFailed($generation, 'Failed to generate image from Replicate');
+
+                return;
             }
 
             $resultContents = file_get_contents($resultUrl);
 
             if ($resultContents === false) {
-                throw new \Exception('Failed to download result image');
+                $this->markAsFailed($generation, 'Failed to download result image');
+
+                return;
             }
 
             $resultPath = 'generations/results/'.$generation->id.'_'.time().'.jpg';
@@ -89,15 +101,20 @@ class GenerateCartoonImageJob implements ShouldQueue
                 'result_path' => $resultPath,
             ]);
         } catch (\Exception $e) {
-            Log::error('Generation failed', [
-                'generation_id' => $this->generationId,
-                'error' => $e->getMessage(),
-            ]);
-
-            $generation->update([
-                'status' => GenerationStatus::Failed,
-                'error' => substr($e->getMessage(), 0, 500),
-            ]);
+            $this->markAsFailed($generation, $e->getMessage());
         }
+    }
+
+    private function markAsFailed(Generation $generation, string $error): void
+    {
+        Log::error('Generation failed', [
+            'generation_id' => $generation->id,
+            'error' => $error,
+        ]);
+
+        $generation->update([
+            'status' => GenerationStatus::Failed,
+            'error' => substr($error, 0, 500),
+        ]);
     }
 }

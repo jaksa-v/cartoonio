@@ -18,40 +18,38 @@ class ReplicateClient
 
     public function runPrediction(string $model, string $imageUrl, array $options = []): ?string
     {
-        try {
-            $input = array_merge([
-                'image_input' => [$imageUrl],
-            ], $options);
+        $input = [
+            'image_input' => [$imageUrl],
+            ...$options,
+        ];
 
-            $requestBody = [
-                'input' => $input,
-            ];
+        $requestBody = [
+            'input' => $input,
+        ];
 
-            $response = Http::withHeaders([
-                'Authorization' => "Token {$this->apiToken}",
-                'Content-Type' => 'application/json',
-            ])->post("{$this->baseUrl}/models/{$model}/predictions", $requestBody);
+        $response = Http::withHeaders([
+            'Authorization' => "Token {$this->apiToken}",
+            'Content-Type' => 'application/json',
+        ])->post("{$this->baseUrl}/models/{$model}/predictions", $requestBody);
 
-            if (! $response->successful()) {
-                Log::error('Replicate API error', [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                ]);
-
-                return null;
-            }
-
-            $prediction = $response->json();
-
-            // Poll for completion
-            return $this->waitForCompletion($prediction['urls']['get']);
-        } catch (\Exception $e) {
-            Log::error('Replicate API exception', [
-                'message' => $e->getMessage(),
+        if (! $response->successful()) {
+            Log::error('Replicate API error', [
+                'status' => $response->status(),
+                'body' => $response->body(),
             ]);
 
             return null;
         }
+
+        $prediction = $response->json();
+
+        if (! isset($prediction['urls']['get'])) {
+            Log::error('Replicate API response missing prediction URL');
+
+            return null;
+        }
+
+        return $this->waitForCompletion($prediction['urls']['get']);
     }
 
     private function waitForCompletion(string $predictionUrl, int $maxAttempts = 60, int $delaySeconds = 2): ?string
@@ -76,11 +74,11 @@ class ReplicateClient
             if ($status === 'succeeded') {
                 $output = $prediction['output'];
 
-                if (is_array($output) && ! empty($output)) {
+                if (\is_array($output) && ! empty($output)) {
                     return $output[0];
                 }
 
-                return is_string($output) ? $output : null;
+                return \is_string($output) ? $output : null;
             }
 
             if ($status === 'failed' || $status === 'canceled') {

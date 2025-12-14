@@ -18,6 +18,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('cartoonify', [CartoonifyController::class, 'index'])->name('cartoonify.index');
     Route::post('cartoonify', [CartoonifyController::class, 'store'])->name('cartoonify.store');
+    Route::get('cartoonify/{generation}', [CartoonifyController::class, 'show'])->name('cartoonify.show');
+    Route::delete('cartoonify/{generation}', [CartoonifyController::class, 'destroy'])->name('cartoonify.destroy');
     Route::post('cartoonify/{generation}/regenerate', [CartoonifyController::class, 'regenerate'])->name('cartoonify.regenerate');
 });
 

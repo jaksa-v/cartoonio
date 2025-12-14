@@ -64,6 +64,47 @@ class CartoonifyController extends Controller
         return redirect()->route('cartoonify.index');
     }
 
+    public function show(Request $request, Generation $generation): Response
+    {
+        if ($generation->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $styles = collect(config('cartoon_styles', []))
+            ->map(fn ($style, $key) => [
+                'key' => $key,
+                'label' => $style['label'],
+            ])
+            ->values();
+
+        $generationData = [
+            'id' => $generation->id,
+            'style_key' => $generation->style_key,
+            'style_label' => config("cartoon_styles.{$generation->style_key}.label", $generation->style_key),
+            'original_url' => $generation->original_url,
+            'result_url' => $generation->result_url,
+            'status' => $generation->status->value,
+            'error' => $generation->error,
+            'created_at' => $generation->created_at,
+        ];
+
+        return Inertia::render('cartoonify/show', [
+            'generation' => $generationData,
+            'styles' => $styles,
+        ]);
+    }
+
+    public function destroy(Request $request, Generation $generation): RedirectResponse
+    {
+        if ($generation->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
+        $generation->delete();
+
+        return redirect()->route('cartoonify.index');
+    }
+
     public function regenerate(Request $request, Generation $generation): RedirectResponse
     {
         $request->validate([

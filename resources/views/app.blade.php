@@ -42,6 +42,10 @@
         @viteReactRefresh
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         @inertiaHead
+
+        {{-- Plausible Analytics --}}
+        <script defer data-domain="cartoonio.jaksav.com" src="https://analytics.jaksav.com/js/script.file-downloads.hash.outbound-links.js"></script>
+        <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
     </head>
     <body class="font-sans antialiased">
         @inertia

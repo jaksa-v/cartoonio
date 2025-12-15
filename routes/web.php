@@ -21,6 +21,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('cartoonify/{generation}', [CartoonifyController::class, 'show'])->name('cartoonify.show');
     Route::delete('cartoonify/{generation}', [CartoonifyController::class, 'destroy'])->name('cartoonify.destroy');
     Route::post('cartoonify/{generation}/regenerate', [CartoonifyController::class, 'regenerate'])->name('cartoonify.regenerate');
+    Route::get('cartoonify/{generation}/file/{type}', [CartoonifyController::class, 'serveFile'])->name('cartoonify.file');
 });
 
 require __DIR__.'/settings.php';

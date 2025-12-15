@@ -55,15 +55,24 @@ class GenerateCartoonImageJob implements ShouldQueue
         }
 
         try {
-            $imageContents = Storage::disk($generation->original_disk)->get($generation->original_path);
+            $encryptedContents = Storage::disk($generation->original_disk)->get($generation->original_path);
 
-            if ($imageContents === false) {
+            if ($encryptedContents === false) {
                 $this->markAsFailed($generation, 'Failed to read original image file');
 
                 return;
             }
 
-            $mimeType = Storage::disk($generation->original_disk)->mimeType($generation->original_path) ?? 'image/png';
+            try {
+                $imageContents = decrypt($encryptedContents);
+            } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+                $this->markAsFailed($generation, 'Failed to decrypt original image');
+                Log::error('Decryption failed', ['generation_id' => $generation->id, 'error' => $e->getMessage()]);
+
+                return;
+            }
+
+            $mimeType = $generation->original_mime_type ?? 'image/jpeg';
             $base64Image = base64_encode($imageContents);
             $dataUri = "data:{$mimeType};base64,{$base64Image}";
 
@@ -92,13 +101,18 @@ class GenerateCartoonImageJob implements ShouldQueue
                 return;
             }
 
-            $resultPath = 'generations/results/'.$generation->id.'_'.time().'.jpg';
-            Storage::disk('public')->put($resultPath, $resultContents);
+            $encryptedResultContents = encrypt($resultContents);
+
+            $resultPath = "generations/{$generation->user_id}/results/{$generation->id}_".time().'.jpg';
+            Storage::disk('s3')->put($resultPath, $encryptedResultContents, [
+                'visibility' => 'private',
+            ]);
 
             $generation->update([
                 'status' => GenerationStatus::Succeeded,
-                'result_disk' => 'public',
+                'result_disk' => 's3',
                 'result_path' => $resultPath,
+                'result_mime_type' => 'image/jpeg',
             ]);
         } catch (\Exception $e) {
             $this->markAsFailed($generation, $e->getMessage());

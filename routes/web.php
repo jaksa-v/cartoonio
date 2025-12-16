@@ -16,10 +16,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-    Route::get('cartoonify', [CartoonifyController::class, 'index'])->name('cartoonify.index');
-    Route::post('cartoonify', [CartoonifyController::class, 'store'])->name('cartoonify.store');
-    Route::get('cartoonify/{generation}', [CartoonifyController::class, 'show'])->name('cartoonify.show');
-    Route::delete('cartoonify/{generation}', [CartoonifyController::class, 'destroy'])->name('cartoonify.destroy');
+    Route::resource('cartoonify', CartoonifyController::class)
+        ->only(['index', 'store', 'show', 'destroy'])
+        ->parameters(['cartoonify' => 'generation']);
     Route::post('cartoonify/{generation}/regenerate', [CartoonifyController::class, 'regenerate'])->name('cartoonify.regenerate');
     Route::get('cartoonify/{generation}/file/{type}', [CartoonifyController::class, 'serveFile'])->name('cartoonify.file');
 });

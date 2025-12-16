@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Storage;
  * @property-read mixed $original_url
  * @property-read mixed $result_url
  * @property-read \App\Models\User $user
+ *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Generation newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Generation newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Generation query()
@@ -41,23 +42,11 @@ use Illuminate\Support\Facades\Storage;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Generation whereStyleKey($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Generation whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Generation whereUserId($value)
+ *
  * @mixin \Eloquent
  */
 class Generation extends Model
 {
-    protected $fillable = [
-        'user_id',
-        'style_key',
-        'original_disk',
-        'original_path',
-        'original_mime_type',
-        'result_disk',
-        'result_path',
-        'result_mime_type',
-        'status',
-        'error',
-    ];
-
     protected static function booted(): void
     {
         static::deleting(function (Generation $generation) {

@@ -116,7 +116,7 @@ class CartoonifyController extends Controller
 
     public function regenerate(Request $request, Generation $generation): RedirectResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'style_key' => ['required', 'string', Rule::in(array_keys(config('cartoon_styles', [])))],
         ]);
 
@@ -124,7 +124,7 @@ class CartoonifyController extends Controller
 
         $newGeneration = Generation::create([
             'user_id' => $request->user()->id,
-            'style_key' => $request->style_key,
+            'style_key' => $validated['style_key'],
             'original_disk' => $generation->original_disk,
             'original_path' => $generation->original_path,
             'original_mime_type' => $generation->original_mime_type,
@@ -140,7 +140,7 @@ class CartoonifyController extends Controller
     {
         Gate::authorize('view', $generation);
 
-        if (! in_array($type, ['original', 'result'])) {
+        if (! \in_array($type, ['original', 'result'])) {
             abort(404);
         }
 
@@ -170,7 +170,7 @@ class CartoonifyController extends Controller
 
         return response($decryptedContents)
             ->header('Content-Type', $mimeType)
-            ->header('Content-Length', strlen($decryptedContents))
+            ->header('Content-Length', \strlen($decryptedContents))
             ->header('Cache-Control', 'private, max-age=604800');
     }
 }

@@ -41,3 +41,19 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface CartoonStyle {
+    key: string;
+    label: string;
+}
+
+export interface Generation {
+    id: number;
+    style_key: string;
+    style_label: string;
+    original_url: string;
+    result_url: string | null;
+    status: 'queued' | 'processing' | 'succeeded' | 'failed';
+    error: string | null;
+    created_at: string;
+}

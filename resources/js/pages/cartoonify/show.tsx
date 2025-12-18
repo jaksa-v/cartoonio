@@ -1,3 +1,4 @@
+import { DeleteDialog } from '@/components/cartoonify/delete-dialog';
 import { ImageCard } from '@/components/cartoonify/image-card';
 import { RegenerateForm } from '@/components/cartoonify/regenerate-form';
 import { ResultImageCard } from '@/components/cartoonify/result-image-card';
@@ -35,6 +36,7 @@ interface Props {
 
 export default function CartoonifyShow({ generation, styles }: Props) {
     const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     const handleRegenerate = (styleKey: string) => {
         router.post(`/cartoonify/${generation.id}/regenerate`, {
@@ -43,19 +45,18 @@ export default function CartoonifyShow({ generation, styles }: Props) {
         });
     };
 
-    const handleDelete = () => {
-        if (
-            !confirm(
-                'Are you sure you want to delete this generation? This action cannot be undone.',
-            )
-        ) {
-            return;
-        }
+    const handleDeleteClick = () => {
+        setDeleteDialogOpen(true);
+    };
 
+    const handleDeleteConfirm = () => {
         setIsDeleting(true);
         router.delete(`/cartoonify/${generation.id}`, {
             preserveScroll: true,
-            onFinish: () => setIsDeleting(false),
+            onFinish: () => {
+                setIsDeleting(false);
+                setDeleteDialogOpen(false);
+            },
             onSuccess: () => {
                 router.visit('/cartoonify');
             },
@@ -126,7 +127,7 @@ export default function CartoonifyShow({ generation, styles }: Props) {
                         <Button
                             variant="destructive"
                             size="default"
-                            onClick={handleDelete}
+                            onClick={handleDeleteClick}
                             disabled={isDeleting}
                         >
                             {isDeleting ? (
@@ -174,6 +175,13 @@ export default function CartoonifyShow({ generation, styles }: Props) {
                         </Link>
                     </Button>
                 </div>
+
+                <DeleteDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    onConfirm={handleDeleteConfirm}
+                    isDeleting={isDeleting}
+                />
             </div>
         </AppLayout>
     );

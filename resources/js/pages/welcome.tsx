@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
-import { dashboard, login, register } from '@/routes';
+import { login, register } from '@/routes';
+import cartoonify from '@/routes/cartoonify';
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ImageIcon, Palette, Sparkles, Zap } from 'lucide-react';
@@ -37,7 +38,9 @@ export default function Welcome({
                     <nav className="flex items-center gap-3">
                         {auth.user ? (
                             <Button asChild>
-                                <Link href={dashboard()}>Dashboard</Link>
+                                <Link href={cartoonify.index()}>
+                                    Start Generating
+                                </Link>
                             </Button>
                         ) : (
                             <>
@@ -71,9 +74,9 @@ export default function Welcome({
                         <div className="flex flex-col items-center justify-center gap-4 pt-4 sm:flex-row">
                             {auth.user ? (
                                 <Button size="lg" asChild>
-                                    <Link href={dashboard()}>
+                                    <Link href={cartoonify.index()}>
                                         <Sparkles className="mr-2 size-5" />
-                                        Start Creating
+                                        Start Generating
                                     </Link>
                                 </Button>
                             ) : (
@@ -171,9 +174,9 @@ export default function Welcome({
                         </p>
                         {auth.user ? (
                             <Button size="lg" asChild>
-                                <Link href={dashboard()}>
+                                <Link href={cartoonify.index()}>
                                     <Sparkles className="mr-2 size-5" />
-                                    Go to Dashboard
+                                    Start Generating
                                 </Link>
                             </Button>
                         ) : (

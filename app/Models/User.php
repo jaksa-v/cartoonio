@@ -13,7 +13,12 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string $name
  * @property string $email
  * @property \Illuminate\Support\Carbon|null $email_verified_at
- * @property string $password
+ * @property string|null $password
+ * @property string|null $provider
+ * @property string|null $provider_id
+ * @property string|null $provider_token
+ * @property string|null $provider_refresh_token
+ * @property string|null $avatar
  * @property string|null $remember_token
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
@@ -53,6 +58,8 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
+        'provider_token',
+        'provider_refresh_token',
         'two_factor_secret',
         'two_factor_recovery_codes',
         'remember_token',
